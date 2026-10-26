@@ -65,6 +65,15 @@
   .leak h3{font-family:'Archivo',sans-serif;font-size:1.08rem;font-weight:800;margin-bottom:8px}
   .leak p{color:var(--muted);font-size:.95rem}
 
+  /* ---------- timeline ---------- */
+  .timeline{margin-top:34px;border-left:2px solid var(--dash);padding-left:0;list-style:none}
+  .timeline li{position:relative;padding:0 0 26px 30px}
+  .timeline li:last-child{padding-bottom:0}
+  .timeline li::before{content:"";position:absolute;left:-6px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--amber)}
+  .timeline .when{font-family:var(--mono);font-size:.74rem;letter-spacing:.14em;color:var(--amber);text-transform:uppercase;margin-bottom:4px}
+  .timeline h3{font-family:'Archivo',sans-serif;font-size:1.08rem;font-weight:800;margin-bottom:4px}
+  .timeline p{color:var(--muted);font-size:.95rem;max-width:600px}
+
   /* ---------- steps ---------- */
   .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:34px;counter-reset:step}
   .step{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:30px 26px;position:relative}
@@ -175,9 +184,46 @@
 
 <div class="wrap"><div class="tear"></div></div>
 
+<section>
+  <div class="wrap">
+    <div class="sec-head"><b>02 /</b> What it actually does</div>
+    <h2>One lead. Here's the machine's month.</h2>
+    <p class="lead">No jargon. This is what happens after someone fills out your form — while you're on a job site.</p>
+    <ul class="timeline">
+      <li>
+        <div class="when">Minute 0</div>
+        <h3>The lead gets an answer</h3>
+        <p>Instant reply, any hour: "Got it — we'll confirm a time shortly." The lead knows they're not shouting into the void.</p>
+      </li>
+      <li>
+        <div class="when">Day 2</div>
+        <h3>The quote gets a nudge</h3>
+        <p>Sent the estimate and heard nothing? The machine follows up for you — polite, short, one question.</p>
+      </li>
+      <li>
+        <div class="when">Day 7</div>
+        <h3>The quiet lead hears from you again</h3>
+        <p>A second check-in, not a blast. Most jobs are won here, because most businesses never send it.</p>
+      </li>
+      <li>
+        <div class="when">Day 14</div>
+        <h3>The last call before it goes cold</h3>
+        <p>One final follow-up, then the lead is filed — not forgotten in an inbox.</p>
+      </li>
+      <li>
+        <div class="when">Job done</div>
+        <h3>The review ask goes out automatically</h3>
+        <p>Happy customer, finished job, review request sent the same day. That's how the next lead finds you first.</p>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<div class="wrap"><div class="tear"></div></div>
+
 <section id="how">
   <div class="wrap">
-    <div class="sec-head"><b>02 /</b> How it works</div>
+    <div class="sec-head"><b>03 /</b> How it works</div>
     <h2>Leaking to locked-in in about a week.</h2>
     <div class="steps">
       <div class="step">
@@ -206,7 +252,7 @@
 
 <section class="pricing" id="packages">
   <div class="wrap">
-    <div class="sec-head"><b>03 /</b> Packages</div>
+    <div class="sec-head"><b>04 /</b> Packages</div>
     <h2>Fixed price. Never hourly.</h2>
     <p class="lead">Hourly billing rewards slow work. You pay for the outcome — a machine that answers every lead — not my time.</p>
     <div class="cards">
@@ -256,7 +302,7 @@
 
 <section>
   <div class="wrap">
-    <div class="sec-head"><b>04 /</b> Proof</div>
+    <div class="sec-head"><b>05 /</b> Proof</div>
     <h2>Watch the machine work.</h2>
     <div class="proof-box">
       <div class="t">Field test — in progress</div>
@@ -269,9 +315,17 @@
 
 <section>
   <div class="wrap">
-    <div class="sec-head"><b>05 /</b> Questions</div>
+    <div class="sec-head"><b>06 /</b> Questions</div>
     <h2>Fair questions.</h2>
     <div class="faq">
+      <details>
+        <summary>Is this for my kind of business?</summary>
+        <p>If customers contact you before they buy — form, phone, email, DM — and you lose some of them to slow follow-up, yes. Painters, contractors, clinics, and other local service businesses are the fit. If you sell one-off products online with no quotes or bookings, this isn't for you.</p>
+      </details>
+      <details>
+        <summary>What do you need from me to start?</summary>
+        <p>About 20 minutes on the free call, plus access to whatever you already use — your forms, email, or CRM. No new software to learn, and nothing gets replaced without your say-so.</p>
+      </details>
       <details>
         <summary>Do I need to be technical?</summary>
         <p>No — that's the whole point. You get a plain-language video walkthrough and a one-page handoff doc. If you can use email, you can run this.</p>
