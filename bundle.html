@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" href="data:,">
+  <title>FollowUp Machine — Leak Check to Delivery</title>
+  <style>
+    :root { --bg: #000000; --surface: #161616; --text: #ffffff; --muted: #b8b8b8; --dim: #8f8f8f; --line: #3d3d3d; --accent: #f5a623; }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html { color-scheme: dark; scroll-behavior: smooth; }
+    body { margin: 0; min-height: 100dvh; overflow-x: hidden; background: var(--bg); color: var(--text); font-family: "Helvetica Neue", Arial, system-ui, sans-serif; font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    button, input, select, textarea { font: inherit; }
+    button, label { -webkit-tap-highlight-color: transparent; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: 0.4; }
+    :focus-visible { outline: 2px solid var(--text); outline-offset: 4px; }
+    .wrap { width: min(calc(100% - 32px), 1040px); margin: 0 auto; padding: 20px 0 max(48px, env(safe-area-inset-bottom)); }
+    .site-header { display: flex; justify-content: space-between; gap: 16px; padding-bottom: 18px; }
+    .brand { font-weight: 700; letter-spacing: -0.02em; }
+    .privacy-top { color: var(--dim); font-size: 0.75rem; text-align: right; }
+    .progress-shell { position: sticky; z-index: 5; top: 0; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--bg); }
+    .progress-top { display: flex; justify-content: space-between; gap: 16px; color: var(--muted); font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; }
+    .progress-track { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+    .progress-segment { height: 3px; background: var(--line); }
+    .progress-segment.done, .progress-segment.current { background: var(--accent); }
+    .stage { padding: 40px 0; }
+    .stage-heading { margin-bottom: 32px; }
+    .eyebrow { margin: 0 0 12px; color: var(--dim); font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; }
+    h1, h2 { margin: 0; font-weight: 550; line-height: 1; letter-spacing: -0.05em; }
+    h1 { font-size: clamp(2.8rem, 10vw, 6.5rem); }
+    h2 { font-size: clamp(2.2rem, 7vw, 4.6rem); }
+    h3 { margin: 0; font-size: 1.1rem; font-weight: 650; line-height: 1.35; }
+    .lead { max-width: 650px; margin: 20px 0 0; color: var(--muted); font-size: 1.02rem; }
+    .context-line { margin: 16px 0 0; color: var(--muted); font-size: 0.85rem; overflow-wrap: anywhere; }
+    .panel { padding: 24px; border: 1px solid var(--line); background: var(--surface); }
+    .panel h3 { margin-bottom: 18px; }
+    .form-grid { display: grid; gap: 22px; }
+    .field { min-width: 0; }
+    .field-wide { grid-column: 1 / -1; }
+    .field > label, .field-label { display: block; margin-bottom: 7px; color: var(--muted); font-size: 0.8rem; }
+    input[type="text"], input[type="number"], select, textarea { width: 100%; min-height: 50px; padding: 10px 0; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: transparent; color: var(--text); transition: border-color 160ms ease-out; }
+    textarea { min-height: 90px; resize: vertical; }
+    input:hover, select:hover, textarea:hover { border-color: var(--muted); }
+    input:focus, select:focus, textarea:focus { border-color: var(--text); }
+    input::placeholder, textarea::placeholder { color: var(--dim); opacity: 1; }
+    .carried-field { min-height: 50px; padding: 10px 0; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+    .hint { display: block; margin-top: 7px; color: var(--dim); font-size: 0.75rem; }
+    fieldset { min-width: 0; margin: 0; padding: 30px 0; border: 0; border-bottom: 1px solid var(--line); }
+    legend { display: flex; width: 100%; gap: 13px; margin-bottom: 18px; padding: 0; font-size: 1.04rem; font-weight: 600; line-height: 1.45; }
+    .question-number { flex: 0 0 auto; padding-top: 4px; color: var(--dim); font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 0.68rem; font-weight: 400; }
+    .options { display: grid; gap: 8px; }
+    .option { display: flex; align-items: center; min-height: 50px; gap: 11px; padding: 11px 13px; border: 1px solid var(--line); color: var(--muted); cursor: pointer; transition: background-color 160ms ease-out, color 160ms ease-out, border-color 160ms ease-out; }
+    .option:hover { border-color: var(--muted); color: var(--text); }
+    .option:has(input:checked) { border-color: var(--text); background: var(--text); color: var(--bg); }
+    .option:has(input:focus-visible) { outline: 2px solid var(--text); outline-offset: 3px; }
+    .option input { flex: 0 0 auto; width: 18px; height: 18px; margin: 0; accent-color: var(--text); }
+    .option:has(input:checked) input { accent-color: var(--bg); }
+    .money-fields { display: grid; gap: 18px; }
+    .input-wrap { position: relative; display: block; margin-top: 7px; }
+    .input-wrap input { padding-left: 30px; }
+    .input-wrap::before { content: "$"; position: absolute; z-index: 1; left: 0; top: 50%; color: var(--muted); transform: translateY(-50%); pointer-events: none; }
+    .primary-button, .secondary-button, .nav-button, .cta { min-height: 50px; padding: 12px 19px; border: 1px solid var(--text); border-radius: 0; font-weight: 700; text-decoration: none; transition: background-color 160ms ease-out, color 160ms ease-out, transform 160ms ease-out; }
+    .primary-button, .cta { display: inline-flex; align-items: center; justify-content: center; background: var(--accent); color: #0b0b0d; }
+    .primary-button { width: 100%; margin-top: 24px; }
+    .secondary-button, .nav-button { background: transparent; color: var(--text); }
+    .primary-button:hover, .cta:hover { background: var(--bg); color: var(--accent); }
+    .secondary-button:hover, .nav-button:hover:not(:disabled) { background: var(--surface); }
+    .primary-button:active, .secondary-button:active, .nav-button:active, .cta:active { transform: scale(0.985); }
+    .stage-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--line); }
+    .stage-nav .nav-button:only-child { margin-left: auto; }
+    .result-block { margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--line); scroll-margin-top: 100px; }
+    .score-line { display: flex; align-items: baseline; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+    .score, .estimate-value { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-variant-numeric: tabular-nums; }
+    .score { font-size: 2rem; line-height: 1; }
+    .score-note { color: var(--muted); font-size: 0.85rem; }
+    .leak-list { margin: 24px 0 0; padding: 0; list-style: none; counter-reset: leaks; }
+    .leak { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 12px; padding: 22px 0; border-top: 1px solid var(--line); counter-increment: leaks; }
+    .leak::before { content: "0" counter(leaks); padding-top: 4px; color: var(--dim); font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 0.68rem; }
+    .leak p { margin: 6px 0 0; color: var(--muted); font-size: 0.9rem; }
+    .estimate { margin-top: 16px; padding: 26px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .estimate-label { margin: 0; color: var(--muted); }
+    .estimate-value { display: block; margin: 8px 0 14px; font-size: clamp(2.2rem, 10vw, 4.8rem); line-height: 1.05; letter-spacing: -0.05em; overflow-wrap: anywhere; }
+    .formula { margin: 0; color: var(--muted); font-size: 0.82rem; }
+    .disclaimer { margin: 12px 0 0; color: var(--dim); font-size: 0.78rem; }
+    .stale-note { margin: 16px 0 0; color: var(--text); font-size: 0.82rem; }
+    .booking-box { max-width: 720px; margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--line); }
+    .booking-box p { color: var(--muted); }
+    .booking-result { padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); color: var(--muted); font-size: 0.85rem; }
+    .cta { width: 100%; margin-top: 24px; }
+    .email { margin-top: 18px; font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 0.82rem; overflow-wrap: anywhere; }
+    .source-grid { display: grid; gap: 8px; }
+    .error { margin: 10px 0 0; font-size: 0.82rem; }
+    .summary-sheet { margin-top: 32px; padding: 24px; border: 1px solid var(--line); background: var(--surface); scroll-margin-top: 100px; }
+    .summary-top { padding-bottom: 22px; border-bottom: 1px solid var(--line); }
+    .summary-top h3 { margin-top: 8px; font-size: clamp(1.6rem, 6vw, 2.8rem); font-weight: 550; letter-spacing: -0.035em; }
+    .summary-date { color: var(--muted); font-size: 0.78rem; }
+    .facts { display: grid; gap: 16px; margin: 22px 0 0; }
+    .fact dt { color: var(--dim); font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 0.64rem; letter-spacing: 0.06em; text-transform: uppercase; }
+    .fact dd { margin: 3px 0 0; overflow-wrap: anywhere; font-size: 0.88rem; }
+    .summary-block { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line); }
+    .summary-block h3 { margin-bottom: 13px; }
+    .gap-list { margin: 0; padding-left: 20px; color: var(--muted); }
+    .gap-list li { margin-top: 7px; }
+    .sequence { display: grid; gap: 16px; margin: 0; padding: 0; list-style: none; }
+    .sequence li { padding-top: 13px; border-top: 1px solid var(--line); }
+    .day { display: block; margin-bottom: 5px; font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; }
+    .sequence p { margin: 0; color: var(--muted); font-size: 0.88rem; }
+    .reply-rule { margin: 20px 0 0; padding-top: 16px; border-top: 1px solid var(--line); font-size: 0.84rem; }
+    .print-button { margin-top: 20px; }
+    .deliver-section { margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--line); }
+    .deliver-section:first-of-type { margin-top: 0; padding-top: 0; border-top: 0; }
+    .deliver-section > h3 { margin-bottom: 8px; font-size: 1.5rem; }
+    .script-grid { display: grid; gap: 14px; margin-top: 24px; }
+    .script-card { min-width: 0; padding: 22px; border: 1px solid var(--line); }
+    .script-use { margin: 4px 0 18px; color: var(--dim); font-size: 0.74rem; }
+    .script-text { margin: 0; color: var(--muted); font-size: 0.92rem; line-height: 1.75; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .checklist-grid { display: grid; gap: 28px; margin-top: 24px; }
+    .checklist-group h4 { margin: 0 0 12px; padding-bottom: 10px; border-bottom: 1px solid var(--line); font-size: 0.95rem; }
+    .call-check { display: flex; align-items: flex-start; gap: 11px; padding: 10px 0; color: var(--muted); cursor: pointer; }
+    .call-check input { flex: 0 0 auto; width: 19px; height: 19px; margin: 3px 0 0; accent-color: var(--text); }
+    .call-check:has(input:checked) span { color: var(--dim); text-decoration: line-through; }
+    .workflow-list { margin-top: 20px; padding: 20px; border: 1px solid var(--line); }
+    .workflow-list h4 { margin: 0 0 10px; }
+    .workflow-list p { margin: 0 0 12px; color: var(--dim); font-size: 0.8rem; }
+    .page-footer { padding: 28px 0; border-top: 1px solid var(--line); color: var(--dim); font-size: 0.78rem; }
+    @media (min-width: 640px) {
+      .wrap { width: min(calc(100% - 64px), 1040px); padding-top: 28px; }
+      .stage { padding: 56px 0; }
+      .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .source-grid, .money-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .primary-button { width: auto; min-width: 230px; }
+      .cta { width: auto; min-width: 260px; }
+      .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .sequence { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .summary-sheet { padding: 36px; }
+      .summary-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
+    }
+    @media (min-width: 840px) { .script-grid, .checklist-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 480px) {
+      .privacy-top { max-width: 150px; }
+      .panel { padding: 18px; }
+      .stage-nav { align-items: stretch; flex-direction: column; }
+      .stage-nav .nav-button { width: 100%; }
+      .stage-nav .nav-next { order: -1; }
+      .score-note { flex-basis: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition-duration: 0.01ms !important; } }
+    @media print {
+      @page { size: letter; margin: 13mm; }
+      html, body { background: #ffffff; color: #000000; font-size: 10.5pt; }
+      .wrap { width: 100%; max-width: none; margin: 0; padding: 0; }
+      .site-header, .progress-shell, #stage-1, #stage-2, #stage-4, #onboardingForm, #stage-3 > .stage-heading, #stage-3 > .stage-nav, .print-button, .stale-note { display: none !important; }
+      #stage-3, #summary { display: block !important; padding: 0; margin: 0; }
+      .summary-sheet { margin: 0; padding: 0; border: 0; background: #ffffff; }
+      .summary-top, .summary-block, .sequence li, .reply-rule { border-color: #999999; }
+      .summary-date, .fact dd, .gap-list, .sequence p, .reply-rule { color: #000000; }
+      .fact dt, .day, .eyebrow { color: #333333; }
+      .summary-block { margin-top: 17px; padding-top: 13px; }
+      .gap-list li { margin-top: 4px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="site-header"><div class="brand">FollowUp Machine</div><div class="privacy-top">Offline · nothing saved or sent</div></header>
+    <div class="progress-shell" aria-label="Onboarding progress">
+      <div class="progress-top"><span id="progressLabel">Step 1 of 4</span><span id="progressName">Leak Check</span></div>
+      <div class="progress-track" aria-hidden="true"><span class="progress-segment current" data-progress="1"></span><span class="progress-segment" data-progress="2"></span><span class="progress-segment" data-progress="3"></span><span class="progress-segment" data-progress="4"></span></div>
+    </div>
+    <section class="stage" id="stage-1" data-stage="1" aria-labelledby="stage1Title">
+      <div class="stage-heading"><p class="eyebrow">Stage 1 · Leak Check</p><h1 id="stage1Title" tabindex="-1">Find the leaks.</h1><p class="lead">Start with the business once, then answer seven questions based on what happens now.</p></div>
+      <form id="leakForm">
+        <div class="panel"><h3>The business</h3><div class="form-grid"><div class="field"><label for="businessName">Business name</label><input id="businessName" name="businessName" type="text" placeholder="Maple & Pine Painting" maxlength="120" required></div><div class="field"><label for="mainService">Main service</label><input id="mainService" name="mainService" type="text" placeholder="Interior painting" maxlength="160" required></div></div><span class="hint">These two answers carry through the result, summary, scripts, and checklists.</span></div>
+        <fieldset><legend><span class="question-number">01</span>How fast do you usually reply to a new inquiry?</legend><div class="options"><label class="option"><input type="radio" name="replySpeedLeak" value="2" required><span>Within 15 minutes</span></label><label class="option"><input type="radio" name="replySpeedLeak" value="1"><span>Within an hour</span></label><label class="option"><input type="radio" name="replySpeedLeak" value="0"><span>Later the same day</span></label><label class="option"><input type="radio" name="replySpeedLeak" value="0"><span>More than a day later</span></label></div></fieldset>
+        <fieldset><legend><span class="question-number">02</span>Do missed calls get a text back?</legend><div class="options"><label class="option"><input type="radio" name="missedCall" value="2" required><span>Yes, automatically</span></label><label class="option"><input type="radio" name="missedCall" value="1"><span>Yes, but I do it manually</span></label><label class="option"><input type="radio" name="missedCall" value="0"><span>No</span></label></div></fieldset>
+        <fieldset><legend><span class="question-number">03</span>Do quotes get a follow-up if there's no reply?</legend><div class="options"><label class="option"><input type="radio" name="quoteFollowUp" value="2" required><span>Yes, every time</span></label><label class="option"><input type="radio" name="quoteFollowUp" value="1"><span>Sometimes</span></label><label class="option"><input type="radio" name="quoteFollowUp" value="0"><span>No, I wait for them to reply</span></label></div></fieldset>
+        <fieldset><legend><span class="question-number">04</span>How many follow-ups before you stop?</legend><div class="options"><label class="option"><input type="radio" name="followUpCount" value="0" required><span>None</span></label><label class="option"><input type="radio" name="followUpCount" value="0"><span>One</span></label><label class="option"><input type="radio" name="followUpCount" value="1"><span>Two or three</span></label><label class="option"><input type="radio" name="followUpCount" value="2"><span>Four or more</span></label></div></fieldset>
+        <fieldset><legend><span class="question-number">05</span>Do you track leads in one place?</legend><div class="options"><label class="option"><input type="radio" name="tracking" value="2" required><span>Yes, every lead goes into one system</span></label><label class="option"><input type="radio" name="tracking" value="1"><span>Partly — it's spread across a few places</span></label><label class="option"><input type="radio" name="tracking" value="0"><span>No, I mostly keep track in my head</span></label></div></fieldset>
+        <fieldset><legend><span class="question-number">06</span>Do you ask for reviews after a job?</legend><div class="options"><label class="option"><input type="radio" name="reviews" value="2" required><span>Yes, after every job</span></label><label class="option"><input type="radio" name="reviews" value="1"><span>Sometimes</span></label><label class="option"><input type="radio" name="reviews" value="0"><span>Rarely or never</span></label></div></fieldset>
+        <fieldset><legend><span class="question-number">07</span>How many new inquiries a month, and what's an average job worth?</legend><div class="money-fields"><label class="field">New inquiries per month<input id="inquiries" name="inquiries" type="number" min="0" step="1" inputmode="numeric" placeholder="20" required></label><label class="field">Average job value in CAD<span class="input-wrap"><input id="jobValue" name="jobValue" type="number" min="0" step="0.01" inputmode="decimal" placeholder="1200" required></span></label></div></fieldset>
+        <button class="primary-button" type="submit">See my leak check</button>
+      </form>
+      <div class="result-block" id="leakResults" hidden><p class="eyebrow" id="leakContext"></p><h2 id="leakResultTitle">Your 3 biggest leaks</h2><div class="score-line"><strong class="score" id="scoreValue">0/12</strong><span class="score-note">follow-up score — higher is better</span></div><ol class="leak-list" id="leakList"></ol><div class="estimate"><p class="estimate-label">Estimated lost value per month · CAD</p><strong class="estimate-value" id="estimateValue">$0</strong><p class="formula" id="formulaText"></p><p class="disclaimer"><strong>Estimate only, not a guarantee.</strong> This uses your leak score as a simple weighting. It is not a measured close rate, a revenue forecast, or an industry statistic. Actual loss could be higher or lower.</p></div><p class="stale-note" id="leakStale" hidden>Answers changed. Run the leak check again before continuing.</p></div>
+      <div class="stage-nav"><button class="nav-button nav-next" id="toStage2" type="button" data-go="2" disabled>Continue to booking</button></div>
+    </section>
+    <section class="stage" id="stage-2" data-stage="2" aria-labelledby="stage2Title" hidden>
+      <div class="stage-heading"><p class="eyebrow">Stage 2 · Book</p><h2 id="stage2Title" tabindex="-1">Talk it through.</h2><p class="context-line"><span data-business>Business</span> · <span data-service>Main service</span></p></div>
+      <div class="booking-box"><p class="booking-result" id="bookingResult"></p><p>Bring the leak check. We'll look at what to fix first and what not to automate yet.</p><a class="cta" href="https://calendly.com/carson-roell/one-on-one">Book a free 20-min call</a><p class="email">hello@freedomengineers.tech</p></div>
+      <div class="stage-nav"><button class="nav-button" type="button" data-go="1">Back to leak check</button><button class="nav-button nav-next" type="button" data-go="3">Continue to onboarding</button></div>
+    </section>
+    <section class="stage" id="stage-3" data-stage="3" aria-labelledby="stage3Title" hidden>
+      <div class="stage-heading"><p class="eyebrow">Stage 3 · Onboarding</p><h2 id="stage3Title" tabindex="-1">Build the plan.</h2><p class="lead">The business and main service are already filled in. Add what happens today, then generate the one-page summary.</p></div>
+      <form id="onboardingForm">
+        <div class="form-grid">
+          <div class="field"><span class="field-label">Business name · carried over</span><div class="carried-field" data-business>Business</div></div>
+          <div class="field"><span class="field-label">Main service · carried over</span><div class="carried-field" data-service>Main service</div></div>
+          <div class="field field-wide"><label for="additionalServices">Other services <span class="hint" style="display:inline;">(optional)</span></label><input id="additionalServices" name="additionalServices" type="text" placeholder="Exterior painting, cabinet painting" maxlength="240"></div>
+          <div class="field"><label for="leadName">Lead name for the scripts</label><input id="leadName" name="leadName" type="text" placeholder="Alex" maxlength="80" required></div>
+          <div class="field"><label for="senderName">Your name</label><input id="senderName" name="senderName" type="text" placeholder="Carson" maxlength="80" required></div>
+          <fieldset class="field field-wide" style="border:0;padding:0;margin:0;"><legend class="field-label" style="padding:0;">Where leads come from</legend><div class="source-grid"><label class="option"><input type="checkbox" name="leadSources" value="Google"><span>Google</span></label><label class="option"><input type="checkbox" name="leadSources" value="Referrals"><span>Referrals</span></label><label class="option"><input type="checkbox" name="leadSources" value="Facebook / Marketplace"><span>Facebook / Marketplace</span></label><label class="option"><input type="checkbox" name="leadSources" value="Website"><span>Website</span></label><label class="option"><input type="checkbox" name="leadSources" value="Phone / walk-ins"><span>Phone / walk-ins</span></label><label class="option"><input type="checkbox" name="leadSources" value="Other"><span>Other</span></label></div><p class="error" id="sourceError" role="alert" hidden>Choose at least one lead source.</p></fieldset>
+          <div class="field field-wide" id="otherSourceField" hidden><label for="otherSources">Other lead sources</label><input id="otherSources" name="otherSources" type="text" placeholder="HomeStars, local partnerships…" maxlength="160"></div>
+          <div class="field"><label for="replySpeed">How fast do they reply now?</label><select id="replySpeed" name="replySpeed" required><option value="" selected disabled>Choose one</option><option value="fast">Within 15 minutes</option><option value="hour">Within an hour</option><option value="day">Later the same day</option><option value="late">More than a day later</option><option value="varies">It varies too much to say</option></select></div>
+          <div class="field"><label for="followUps">How many follow-ups do they do now?</label><select id="followUps" name="followUps" required><option value="" selected disabled>Choose one</option><option value="none">None</option><option value="one">One</option><option value="twoThree">Two or three</option><option value="fourPlus">Four or more</option></select></div>
+          <div class="field field-wide"><label for="tools">What tools do they already use?</label><textarea id="tools" name="tools" placeholder="Google Sheets, Gmail, Jobber, paper notes, none…" maxlength="600" required></textarea></div>
+        </div>
+        <button class="primary-button" id="generateSummary" type="submit">Generate one-page summary</button>
+      </form>
+      <p class="stale-note" id="summaryStale" hidden>Onboarding answers changed. Update the summary before continuing.</p>
+      <div class="summary-sheet" id="summary" hidden>
+        <div class="summary-top"><div><p class="eyebrow">FollowUp Machine · Client plan</p><h3 id="summaryTitle">Business follow-up plan</h3></div><span class="summary-date" id="summaryDate"></span></div>
+        <dl class="facts"><div class="fact"><dt>Business</dt><dd id="factBusiness"></dd></div><div class="fact"><dt>Services</dt><dd id="factServices"></dd></div><div class="fact"><dt>Lead sources</dt><dd id="factSources"></dd></div><div class="fact"><dt>Current reply time</dt><dd id="factReply"></dd></div><div class="fact"><dt>Current follow-ups</dt><dd id="factFollowUps"></dd></div><div class="fact"><dt>Tools already in use</dt><dd id="factTools"></dd></div></dl>
+        <div class="summary-block"><h3>Current follow-up gaps</h3><ul class="gap-list" id="gapList"></ul></div>
+        <div class="summary-block"><h3>Sequence to set up</h3><ol class="sequence"><li><span class="day">Day 0 · Intro</span><p id="day0Plan"></p></li><li><span class="day">Day 2 · Value check-in</span><p id="day2Plan"></p></li><li><span class="day">Day 5 · Last-touch</span><p id="day5Plan"></p></li></ol><p class="reply-rule">Any reply stops the sequence. No reply after Day 5 goes to manual follow-up.</p></div>
+      </div>
+      <button class="secondary-button print-button" id="printButton" type="button" hidden>Print summary</button>
+      <div class="stage-nav"><button class="nav-button" type="button" data-go="2">Back to booking</button><button class="nav-button nav-next" id="toStage4" type="button" data-go="4" disabled>Continue to delivery</button></div>
+    </section>
+    <section class="stage" id="stage-4" data-stage="4" aria-labelledby="stage4Title" hidden>
+      <div class="stage-heading"><p class="eyebrow">Stage 4 · Deliver</p><h2 id="stage4Title" tabindex="-1">Use the pack.</h2><p class="context-line"><span data-business>Business</span> · <span data-service>Main service</span></p><p class="lead">Scripts are personalized from the earlier answers. Checklists stay on this page and reset on reload.</p></div>
+      <section class="deliver-section" aria-labelledby="scriptsHeading"><h3 id="scriptsHeading">Day 2 scripts</h3><p class="context-line">For <span data-business>Business</span> · <span data-service>Main service</span></p><div class="script-grid"><article class="script-card"><h3>Painters</h3><p class="script-use">Plain check-in</p><p class="script-text" id="painterScript"></p></article><article class="script-card"><h3>Movers</h3><p class="script-use">Plain check-in</p><p class="script-text" id="moverScript"></p></article><article class="script-card"><h3>Locksmiths</h3><p class="script-use">Plain check-in</p><p class="script-text" id="locksmithScript"></p></article></div></section>
+      <section class="deliver-section" aria-labelledby="callChecklistHeading"><h3 id="callChecklistHeading">First-call checklist</h3><p class="context-line"><span data-business>Business</span> · <span data-service>Main service</span></p><div class="checklist-grid">
+        <div class="checklist-group"><h4>Confirm</h4><label class="call-check"><input type="checkbox"><span>Services, service area, and the jobs they want more of</span></label><label class="call-check"><input type="checkbox"><span>Every lead source and where those leads land now</span></label><label class="call-check"><input type="checkbox"><span>Who replies, who covers missed calls, and working hours</span></label><label class="call-check"><input type="checkbox"><span>What counts as a reply and when the sequence should stop</span></label><label class="call-check"><input type="checkbox"><span>Who approves the final wording and sending rules</span></label></div>
+        <div class="checklist-group"><h4>Set up</h4><label class="call-check"><input type="checkbox"><span>One lead list with an owner and a next step for every lead</span></label><label class="call-check"><input type="checkbox"><span>Day 0, Day 2, and Day 5 messages in the client's own words</span></label><label class="call-check"><input type="checkbox"><span>Reply detection and an automatic stop</span></label><label class="call-check"><input type="checkbox"><span>A missed-call text and quote follow-up where needed</span></label><label class="call-check"><input type="checkbox"><span>A manual review list for leads with no reply after Day 5</span></label><label class="call-check"><input type="checkbox"><span>A test run with fake leads before using real customer data</span></label></div>
+        <div class="checklist-group"><h4>Do not promise</h4><label class="call-check"><input type="checkbox"><span>No guaranteed bookings, revenue, or response-rate lift</span></label><label class="call-check"><input type="checkbox"><span>No claim that every inquiry will get an instant reply</span></label><label class="call-check"><input type="checkbox"><span>No invented industry benchmarks or before-and-after numbers</span></label><label class="call-check"><input type="checkbox"><span>No fully hands-off setup before testing and client approval</span></label><label class="call-check"><input type="checkbox"><span>No sending to real leads until the client signs off</span></label></div>
+      </div></section>
+      <section class="deliver-section" aria-labelledby="workflowHeading"><h3 id="workflowHeading">n8n demo setup checklist</h3><p class="context-line">Workflow for <span data-business>Business</span> · <span data-service>Main service</span></p><div class="workflow-list"><h4>Test the demo, never the live workflow</h4><p>Use a demo Sheet, a demo workflow, and fake `.test` email addresses.</p><label class="call-check"><input type="checkbox"><span>Create a new demo copy of the Sheet and n8n workflow</span></label><label class="call-check"><input type="checkbox"><span>Paste the demo spreadsheet ID into Config</span></label><label class="call-check"><input type="checkbox"><span>Select the demo Google Sheets credential</span></label><label class="call-check"><input type="checkbox"><span>Keep testMode=true and liveSendConfirmed=false</span></label><label class="call-check"><input type="checkbox"><span>Add three fake leads with unique `.test` email addresses</span></label><label class="call-check"><input type="checkbox"><span>Run Manual Test Run and confirm simulated Day 0 log entries</span></label><label class="call-check"><input type="checkbox"><span>Test Day 2 and Day 5 with backdated test rows</span></label><label class="call-check"><input type="checkbox"><span>Set Reply Detected=YES on one test lead and confirm the sequence stops</span></label><label class="call-check"><input type="checkbox"><span>Confirm no reply after Day 5 creates a manual-follow-up flag</span></label><label class="call-check"><input type="checkbox"><span>Check that every Send Log row says TEST — not sent</span></label><label class="call-check"><input type="checkbox"><span>Keep Gmail credentials and real leads disconnected until client approval</span></label></div></section>
+      <div class="stage-nav"><button class="nav-button" type="button" data-go="3">Back to onboarding</button></div>
+    </section>
+    <footer class="page-footer">FollowUp Machine · Answers stay in this page until you reload.</footer>
+  </main>
+  <script>
+    (() => {
+      "use strict";
+      const state = { stage: 1, leakComplete: false, summaryReady: false, businessName: "", mainService: "", score: 0, estimate: 0 };
+      const stageNames = ["Leak Check", "Book", "Onboarding", "Deliver"];
+      const leakForm = document.getElementById("leakForm");
+      const onboardingForm = document.getElementById("onboardingForm");
+      const cad = new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD", maximumFractionDigits: 0 });
+      function setText(id, value) { document.getElementById(id).textContent = value; }
+      function goToStage(stage) {
+        if (stage > 1 && !state.leakComplete) return;
+        if (stage > 3 && !state.summaryReady) return;
+        state.stage = stage;
+        document.querySelectorAll("[data-stage]").forEach(section => { section.hidden = Number(section.dataset.stage) !== stage; });
+        setText("progressLabel", `Step ${stage} of 4`); setText("progressName", stageNames[stage - 1]);
+        document.querySelectorAll("[data-progress]").forEach(segment => { const number = Number(segment.dataset.progress); segment.classList.toggle("done", number < stage); segment.classList.toggle("current", number === stage); });
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        const heading = document.querySelector(`#stage-${stage} h1, #stage-${stage} h2`); if (heading) heading.focus({ preventScroll: true });
+      }
+      document.querySelectorAll("[data-go]").forEach(button => { button.addEventListener("click", () => goToStage(Number(button.dataset.go))); });
+      function applyBusinessContext() { state.businessName = leakForm.elements.businessName.value.trim(); state.mainService = leakForm.elements.mainService.value.trim(); document.querySelectorAll("[data-business]").forEach(element => { element.textContent = state.businessName; }); document.querySelectorAll("[data-service]").forEach(element => { element.textContent = state.mainService; }); }
+      function selectedScore(name) { return Number(leakForm.elements[name].value); }
+      function selectedText(name) { return leakForm.querySelector(`input[name="${name}"]:checked`).nextElementSibling.textContent; }
+      leakForm.addEventListener("input", () => { if (!state.leakComplete) return; state.leakComplete = false; document.getElementById("toStage2").disabled = true; document.getElementById("leakStale").hidden = false; });
+      leakForm.addEventListener("submit", event => {
+        event.preventDefault(); if (!leakForm.reportValidity()) return; applyBusinessContext();
+        const answers = [
+          { name: "replySpeedLeak", score: selectedScore("replySpeedLeak"), leaks: { 0: ["New inquiries wait too long", `Your answer: ${selectedText("replySpeedLeak")}. A slow first reply gives a new inquiry time to go quiet.`], 1: ["Your first reply could be faster", "You usually reply within an hour. A tighter reply routine would leave less room for inquiries to be missed."] } },
+          { name: "missedCall", score: selectedScore("missedCall"), leaks: { 0: ["Missed calls get no text back", "When you miss a call, the caller does not get a simple next step from you."], 1: ["Missed-call texts depend on memory", "You text back manually. A set routine would make sure it happens on busy days too."] } },
+          { name: "quoteFollowUp", score: selectedScore("quoteFollowUp"), leaks: { 0: ["Quotes get no follow-up", "Once a quote goes out, you wait for the customer to come back. There is no check-in if they go quiet."], 1: ["Quote follow-ups are inconsistent", "You sometimes check back on quotes, but there is no set follow-up every time."] } },
+          { name: "followUpCount", score: selectedScore("followUpCount"), leaks: { 0: [selectedText("followUpCount") === "One" ? "You stop after one follow-up" : "Leads get no follow-up", "Your current stopping point can leave a conversation unfinished."], 1: ["You stop after two or three follow-ups", "You do check back, but there is still room for a clearer follow-up routine."] } },
+          { name: "tracking", score: selectedScore("tracking"), leaks: { 0: ["Leads are not tracked in one place", "Without one lead list, it is hard to see who needs a reply or follow-up today."], 1: ["Lead tracking is spread out", "Your leads live in a few places, so the next step is not always easy to see."] } },
+          { name: "reviews", score: selectedScore("reviews"), leaks: { 0: ["Review requests are left to chance", "Finished jobs rarely get a review request, so the follow-up after the work is missing too."], 1: ["Review requests are inconsistent", "You ask sometimes, but there is no set step after every finished job."] } }
+        ];
+        const score = answers.reduce((total, answer) => total + answer.score, 0); const riskPoints = 12 - score;
+        const leaks = answers.filter(answer => answer.score < 2).sort((a, b) => a.score - b.score).slice(0, 3).map(answer => answer.leaks[answer.score]);
+        const inquiries = Number(leakForm.elements.inquiries.value); const jobValue = Number(leakForm.elements.jobValue.value); const estimate = inquiries * jobValue * (riskPoints / 12);
+        state.score = score; state.estimate = estimate; state.leakComplete = true;
+        setText("leakContext", `${state.businessName} · ${state.mainService}`); setText("scoreValue", `${score}/12`); setText("leakResultTitle", leaks.length === 3 ? "Your 3 biggest leaks" : leaks.length === 0 ? "No clear leaks showed up" : `Your ${leaks.length} biggest ${leaks.length === 1 ? "leak" : "leaks"}`);
+        const leakList = document.getElementById("leakList"); leakList.replaceChildren();
+        if (!leaks.length) { leaks.push(["Your answers show a steady follow-up routine", "Keep using it and check back when the process changes."]); }
+        leaks.forEach(([title, description]) => { const item = document.createElement("li"); item.className = "leak"; const content = document.createElement("div"); const heading = document.createElement("h3"); const text = document.createElement("p"); heading.textContent = title; text.textContent = description; content.append(heading, text); item.appendChild(content); leakList.appendChild(item); });
+        setText("estimateValue", cad.format(estimate)); setText("formulaText", `${inquiries} inquiries × ${cad.format(jobValue)} average job × ${riskPoints}/12 leak weighting = ${cad.format(estimate)} CAD per month.`); setText("bookingResult", `${state.businessName} · ${state.mainService} · Score ${score}/12 · Estimate ${cad.format(estimate)} CAD/month`);
+        document.getElementById("leakResults").hidden = false; document.getElementById("leakStale").hidden = true; document.getElementById("toStage2").disabled = false; document.getElementById("leakResults").scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      document.querySelectorAll('input[name="leadSources"]').forEach(input => { input.addEventListener("change", () => { const checked = onboardingForm.querySelectorAll('input[name="leadSources"]:checked'); document.getElementById("sourceError").hidden = checked.length > 0; const other = onboardingForm.querySelector('input[name="leadSources"][value="Other"]').checked; document.getElementById("otherSourceField").hidden = !other; if (!other) onboardingForm.elements.otherSources.value = ""; }); });
+      onboardingForm.addEventListener("input", () => { if (!state.summaryReady) return; state.summaryReady = false; document.getElementById("toStage4").disabled = true; document.getElementById("summaryStale").hidden = false; });
+      function addGap(list, text) { const item = document.createElement("li"); item.textContent = text; list.appendChild(item); }
+      function renderScripts(details) { const lead = details.leadName; const sender = details.senderName; const business = state.businessName; const service = state.mainService; setText("painterScript", `Hi ${lead},\n\n${sender} from ${business} here. Just checking in about ${service}.\n\nIf you're still deciding, I can walk through the prep, timing, and price so you know what to expect. Do you want to talk it through this week?`); setText("moverScript", `Hi ${lead},\n\n${sender} from ${business} here. Just checking in about ${service}.\n\nIf you still need help with the move, send over the date, the two addresses, and anything heavy or tricky. I can confirm the job and give you a clear quote. Want to sort that out this week?`); setText("locksmithScript", `Hi ${lead},\n\n${sender} from ${business} here. Just checking in about ${service}.\n\nIf you still need help, tell me where you are and what's happened with the lock or key. I'll confirm what we can do and when we can get there. Do you want me to check availability?`); }
+      onboardingForm.addEventListener("submit", event => {
+        event.preventDefault(); if (!onboardingForm.reportValidity()) return;
+        const checkedSources = [...onboardingForm.querySelectorAll('input[name="leadSources"]:checked')]; document.getElementById("sourceError").hidden = checkedSources.length > 0; if (!checkedSources.length) { onboardingForm.querySelector('input[name="leadSources"]').focus(); return; }
+        applyBusinessContext();
+        const leadName = onboardingForm.elements.leadName.value.trim(); const senderName = onboardingForm.elements.senderName.value.trim(); const additionalServices = onboardingForm.elements.additionalServices.value.trim(); const tools = onboardingForm.elements.tools.value.trim(); const replySpeed = onboardingForm.elements.replySpeed.value; const followUps = onboardingForm.elements.followUps.value; const replyLabel = onboardingForm.elements.replySpeed.selectedOptions[0].textContent; const followUpLabel = onboardingForm.elements.followUps.selectedOptions[0].textContent; const services = [state.mainService, additionalServices].filter(Boolean).join(", ");
+        const sources = checkedSources.map(input => { if (input.value === "Other") return onboardingForm.elements.otherSources.value.trim() || "Other"; return input.value; });
+        setText("summaryTitle", `${state.businessName} follow-up plan`); setText("summaryDate", new Date().toLocaleDateString("en-CA", { month: "long", day: "numeric", year: "numeric" })); setText("factBusiness", state.businessName); setText("factServices", services); setText("factSources", sources.join(", ")); setText("factReply", replyLabel); setText("factFollowUps", followUpLabel); setText("factTools", tools);
+        const gaps = [];
+        if (replySpeed === "hour") gaps.push("Replies usually go out within an hour, but there is no set fast-reply routine.");
+        if (replySpeed === "day") gaps.push("New inquiries can wait until later in the day for a first reply.");
+        if (replySpeed === "late") gaps.push("A new inquiry can wait more than a day for a first reply.");
+        if (replySpeed === "varies") gaps.push("Reply time changes depending on who notices the inquiry.");
+        if (followUps === "none") gaps.push("There is no follow-up after the first contact or quote.");
+        if (followUps === "one") gaps.push("Follow-up stops after one extra message.");
+        if (followUps === "twoThree") gaps.push("Follow-up happens, but it is not tied to a fixed Day 0 / Day 2 / Day 5 routine.");
+        if (sources.length > 1) { gaps.push(`Leads come from ${sources.length} sources; they need one shared list and a clear owner.`); }
+        if (/^(none|nothing|no tools?|n\/?a)\.?$/i.test(tools)) { gaps.push("No lead-tracking tool is in place yet."); } else { gaps.push(`Confirm that ${tools} can show every lead, its owner, and its next step.`); }
+        if (!gaps.length) { gaps.push("No obvious gap showed up in these answers. Confirm that the process is used for every lead."); }
+        const gapList = document.getElementById("gapList"); gapList.replaceChildren(); gaps.forEach(gap => addGap(gapList, gap));
+        setText("day0Plan", `Send a short intro from ${state.businessName} about ${state.mainService}. Confirm what ${leadName} needs and agree on the next step.`); setText("day2Plan", `Check in on ${state.mainService}. Answer questions and offer a clear quote, booking, or next available time.`); setText("day5Plan", `Send one last note to ${leadName}. Close the loop politely and leave the door open.`);
+        renderScripts({ leadName, senderName }); state.summaryReady = true;
+        document.getElementById("summary").hidden = false; document.getElementById("printButton").hidden = false; document.getElementById("summaryStale").hidden = true; document.getElementById("toStage4").disabled = false; document.getElementById("generateSummary").textContent = "Update one-page summary"; document.getElementById("summary").scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      document.getElementById("printButton").addEventListener("click", () => { window.print(); });
+    })();
+  </script>
+</body>
+</html>
