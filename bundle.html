@@ -7,7 +7,7 @@
   <link rel="icon" href="data:,">
   <title>FollowUp Machine — Leak Check to Delivery</title>
   <style>
-    :root { --bg: #000000; --surface: #161616; --text: #ffffff; --muted: #b8b8b8; --dim: #8f8f8f; --line: #3d3d3d; --accent: #f5a623; }
+    :root { --bg: #0b0b0d; --surface: #121215; --text: #ffffff; --muted: #b8b8b8; --dim: #8f8f8f; --line: #26262b; --accent: #f5a623; }
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
     html { color-scheme: dark; scroll-behavior: smooth; }
@@ -188,7 +188,7 @@
     </section>
     <section class="stage" id="stage-2" data-stage="2" aria-labelledby="stage2Title" hidden>
       <div class="stage-heading"><p class="eyebrow">Stage 2 · Book</p><h2 id="stage2Title" tabindex="-1">Talk it through.</h2><p class="context-line"><span data-business>Business</span> · <span data-service>Main service</span></p></div>
-      <div class="booking-box"><p class="booking-result" id="bookingResult"></p><p>Bring the leak check. We'll look at what to fix first and what not to automate yet.</p><a class="cta" href="https://calendly.com/carson-roell/one-on-one">Book a free 20-min call</a><p class="email">hello@freedomengineers.tech</p></div>
+      <div class="booking-box"><p class="booking-result" id="bookingResult"></p><p>Bring the leak check. We'll look at what to fix first and what not to automate yet.</p><a class="cta" href="https://calendly.com/carson-roell/one-on-one">Book a free 20-min call</a><a class="cta" style="background:transparent;color:var(--text);border-color:var(--text);margin-top:12px" href="demo.html">See the machine work first</a><button class="secondary-button" id="emailResults" type="button" style="width:100%;margin-top:12px">Email me my leak-check results</button><p class="email">hello@freedomengineers.tech</p><p class="hint" id="emailNote" style="margin-top:10px">Email opens in your own email app — nothing is stored by this page. Your results go to FollowUp Machine so Cars can follow up.</p></div>
       <div class="stage-nav"><button class="nav-button" type="button" data-go="1">Back to leak check</button><button class="nav-button nav-next" type="button" data-go="3">Continue to onboarding</button></div>
     </section>
     <section class="stage" id="stage-3" data-stage="3" aria-labelledby="stage3Title" hidden>
@@ -302,6 +302,12 @@
         setText("day0Plan", `Send a short intro from ${state.businessName} about ${state.mainService}. Confirm what ${leadName} needs and agree on the next step.`); setText("day2Plan", `Check in on ${state.mainService}. Answer questions and offer a clear quote, booking, or next available time.`); setText("day5Plan", `Send one last note to ${leadName}. Close the loop politely and leave the door open.`);
         renderScripts({ leadName, senderName }); state.summaryReady = true;
         document.getElementById("summary").hidden = false; document.getElementById("printButton").hidden = false; document.getElementById("summaryStale").hidden = true; document.getElementById("toStage4").disabled = false; document.getElementById("generateSummary").textContent = "Update one-page summary"; document.getElementById("summary").scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      document.getElementById("emailResults").addEventListener("click", () => {
+        if (!state.leakComplete) { alert("Run the leak check first, then email your results."); return; }
+        const subject = `Leak check results — ${state.businessName}`;
+        const body = `Business: ${state.businessName}\nService: ${state.mainService}\nFollow-up score: ${state.score}/12\nEstimated lost value: ${cad.format(state.estimate)} CAD/month (estimate only, not a guarantee)\n\nI ran the FollowUp Machine leak check and would like to talk through it.`;
+        window.location.href = `mailto:hello@freedomengineers.tech?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
       });
       document.getElementById("printButton").addEventListener("click", () => { window.print(); });
     })();

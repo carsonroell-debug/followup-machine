@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="icon" href="data:,">
+  <title>FollowUp Machine — Interactive 30-Day Demo</title>
+  <style>
+    :root { --black: #0a0a0a; --panel: #111111; --white: #f7f7f2; --muted: #b9b9b2; --dim: #85857f; --line: #343431; --amber: #f5a623; --amber-dark: #b97508; }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html { color-scheme: dark; scroll-behavior: smooth; }
+    body { margin: 0; min-width: 320px; overflow-x: hidden; background: var(--black); color: var(--white); font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif; font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; cursor: pointer; }
+    button:disabled { cursor: not-allowed; }
+    :focus-visible { outline: 2px solid var(--amber); outline-offset: 4px; }
+    .shell { width: min(calc(100% - 32px), 1320px); margin: 0 auto; }
+    .mono, .eyebrow, .label, .time-marker, .step-state, .chip, .crm-status, .message-state, .activity-time { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+    .eyebrow, .label { margin: 0; color: var(--dim); font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; min-height: 76px; gap: 20px; border-bottom: 1px solid var(--line); }
+    .brand { display: flex; align-items: center; gap: 11px; font-size: 0.82rem; font-weight: 750; letter-spacing: 0.08em; text-transform: uppercase; }
+    .brand-mark { width: 13px; height: 13px; background: var(--amber); box-shadow: 5px 5px 0 #493008; }
+    .top-actions { display: flex; align-items: center; gap: 18px; }
+    .offline { color: var(--dim); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; }
+    .reset-button { min-height: 42px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 0; background: transparent; color: var(--white); font-size: 0.78rem; font-weight: 650; transition: border-color 150ms ease, background-color 150ms ease; }
+    .reset-button:hover { border-color: var(--amber); background: #1b160d; }
+    .hero { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(260px, 0.65fr); gap: 48px; padding: 62px 0 48px; align-items: end; }
+    h1 { max-width: 850px; margin: 14px 0 0; font-size: clamp(3rem, 7.8vw, 7.1rem); font-weight: 560; letter-spacing: -0.065em; line-height: 0.94; }
+    h1 span { color: var(--amber); }
+    .hero-copy { max-width: 680px; margin: 24px 0 0; color: var(--muted); font-size: 1.04rem; }
+    .rule-box { padding: 22px 0 4px 24px; border-left: 2px solid var(--amber); }
+    .rule-box strong { display: block; margin-top: 12px; font-size: 1.45rem; font-weight: 560; letter-spacing: -0.025em; line-height: 1.2; }
+    .rule-box p:last-child { margin: 13px 0 0; color: var(--muted); font-size: 0.86rem; }
+    .business-strip { display: grid; grid-template-columns: 1.2fr 1fr 1fr; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .business-item { min-width: 0; padding: 18px 20px; border-right: 1px solid var(--line); }
+    .business-item:first-child { padding-left: 0; }
+    .business-item:last-child { border-right: 0; }
+    .business-item strong { display: block; margin-top: 5px; overflow-wrap: anywhere; font-size: 0.9rem; font-weight: 550; }
+    .demo-section { padding: 34px 0 64px; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 20px; }
+    h2 { margin: 6px 0 0; font-size: clamp(1.8rem, 4vw, 3.1rem); font-weight: 560; letter-spacing: -0.045em; line-height: 1.05; }
+    .section-note { max-width: 420px; margin: 0; color: var(--dim); font-size: 0.8rem; text-align: right; }
+    .lead-switcher { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid var(--line); border-bottom: 0; }
+    .lead-tab { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; min-height: 82px; gap: 16px; padding: 16px 20px; border: 0; border-right: 1px solid var(--line); border-radius: 0; background: var(--black); color: var(--muted); text-align: left; transition: background-color 150ms ease, color 150ms ease; }
+    .lead-tab:last-child { border-right: 0; }
+    .lead-tab:hover { background: var(--panel); color: var(--white); }
+    .lead-tab[aria-pressed="true"] { background: var(--white); color: var(--black); }
+    .lead-tab[aria-pressed="true"]::after { content: ""; position: absolute; right: 0; bottom: -1px; left: 0; height: 3px; background: var(--amber); }
+    .lead-name { display: block; font-size: 1.05rem; font-weight: 700; }
+    .lead-detail { display: block; margin-top: 4px; overflow-wrap: anywhere; font-size: 0.75rem; opacity: 0.72; }
+    .chip { display: inline-flex; align-items: center; gap: 7px; color: inherit; font-size: 0.62rem; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+    .chip::before, .crm-status::before { content: ""; flex: 0 0 auto; width: 7px; height: 7px; border: 1px solid currentColor; border-radius: 50%; }
+    .lead-tab[aria-pressed="true"] .chip::before, .crm-status::before { border-color: var(--amber-dark); background: var(--amber); box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.12); }
+    .workspace { display: grid; grid-template-columns: minmax(220px, 0.72fr) minmax(360px, 1.35fr) minmax(280px, 0.9fr); border: 1px solid var(--line); background: var(--black); }
+    .workspace-panel { min-width: 0; padding: 24px; border-right: 1px solid var(--line); }
+    .workspace-panel:last-child { border-right: 0; }
+    .panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+    .panel-heading h3 { margin: 0; font-size: 0.86rem; font-weight: 650; }
+    .panel-number { color: var(--dim); font-size: 0.65rem; }
+    .timeline { display: grid; padding-top: 8px; }
+    .time-step { position: relative; display: grid; grid-template-columns: 54px 22px minmax(0, 1fr); gap: 9px; min-height: 86px; padding: 16px 0; border: 0; border-radius: 0; background: transparent; color: var(--muted); text-align: left; }
+    .time-step:hover .time-copy strong { color: var(--white); }
+    .time-step[aria-current="step"] .time-copy strong { color: var(--amber); }
+    .time-marker { padding-top: 2px; color: var(--dim); font-size: 0.62rem; letter-spacing: 0.05em; text-transform: uppercase; }
+    .time-node { position: relative; display: flex; justify-content: center; padding-top: 5px; }
+    .time-node::before { content: ""; position: relative; z-index: 2; width: 9px; height: 9px; border: 1px solid var(--dim); border-radius: 50%; background: var(--black); transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease; }
+    .time-node::after { content: ""; position: absolute; z-index: 1; top: 15px; bottom: -37px; left: 50%; width: 1px; background: var(--line); }
+    .time-step:last-child .time-node::after { display: none; }
+    .time-step.is-done .time-node::before { border-color: var(--amber); background: var(--amber); box-shadow: 0 0 0 4px rgba(245, 166, 35, 0.1); }
+    .time-step.is-done .time-node::after { background: var(--amber-dark); }
+    .time-step.is-skipped .time-node::before { border-color: var(--dim); background: var(--black); box-shadow: inset 0 0 0 2px var(--black); }
+    .time-step.is-next .time-node::before { border-color: var(--amber); box-shadow: 0 0 0 4px rgba(245, 166, 35, 0.08); }
+    .time-copy { min-width: 0; }
+    .time-copy strong { display: block; color: var(--white); font-size: 0.86rem; font-weight: 600; line-height: 1.3; transition: color 150ms ease; }
+    .step-state { display: block; margin-top: 5px; color: var(--dim); font-size: 0.61rem; line-height: 1.4; }
+    .time-step.is-next .step-state { color: var(--amber); }
+    .message-panel { background: var(--panel); }
+    .message-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+    .message-state { color: var(--amber); font-size: 0.61rem; letter-spacing: 0.06em; text-transform: uppercase; text-align: right; }
+    .message-title { margin: 20px 0 18px; font-size: clamp(1.65rem, 3vw, 2.4rem); font-weight: 560; letter-spacing: -0.04em; line-height: 1.05; }
+    .message-meta { display: grid; gap: 6px; margin: 0 0 20px; padding: 0 0 18px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 0.75rem; overflow-wrap: anywhere; }
+    .message-meta span { color: var(--dim); }
+    .message-body { min-height: 190px; margin: 0; color: var(--white); font-size: 1rem; line-height: 1.75; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .message-body.is-skipped { color: var(--muted); }
+    .sequence-notice { margin-top: 20px; padding: 13px 14px; border-left: 2px solid var(--amber); background: #1b160d; color: var(--white); font-size: 0.78rem; }
+    .controls { display: grid; grid-template-columns: 1fr; gap: 9px; margin-top: 22px; }
+    .action-button { min-height: 50px; padding: 12px 16px; border: 1px solid var(--white); border-radius: 0; font-size: 0.83rem; font-weight: 700; transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease, transform 150ms ease; }
+    .action-button:active:not(:disabled) { transform: translateY(1px); }
+    .action-primary { border-color: var(--amber); background: var(--amber); color: var(--black); }
+    .action-primary:hover:not(:disabled) { background: #ffb83f; }
+    .action-primary:disabled { border-color: var(--line); background: var(--line); color: var(--dim); }
+    .action-secondary { background: transparent; color: var(--white); }
+    .action-secondary:hover { border-color: var(--amber); color: var(--amber); }
+    .action-crm { border-color: var(--amber-dark); background: transparent; color: var(--amber); }
+    .action-crm:hover { background: #1b160d; }
+    .control-hint { min-height: 40px; margin: 12px 0 0; color: var(--dim); font-size: 0.72rem; }
+    .crm-status { display: inline-flex; align-items: center; gap: 9px; margin: 22px 0; color: var(--amber); font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; }
+    .crm-list { display: grid; gap: 0; margin: 0; }
+    .crm-row { display: grid; grid-template-columns: 78px minmax(0, 1fr); gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 0.75rem; }
+    .crm-row dt { color: var(--dim); }
+    .crm-row dd { margin: 0; overflow-wrap: anywhere; }
+    .manual-flag { margin-top: 16px; padding: 12px; border: 1px solid var(--amber-dark); color: var(--amber); font-size: 0.74rem; }
+    .activity-heading { margin: 26px 0 10px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--dim); font-size: 0.65rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; }
+    .activity-list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+    .activity-item { padding: 11px 0; border-bottom: 1px solid #242422; }
+    .activity-item strong { display: block; font-size: 0.75rem; font-weight: 550; line-height: 1.45; }
+    .activity-item p { margin: 4px 0 0; color: var(--dim); font-size: 0.68rem; line-height: 1.5; }
+    .activity-time { display: block; margin-bottom: 3px; color: var(--amber); font-size: 0.58rem; letter-spacing: 0.05em; text-transform: uppercase; }
+    .explain-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 22px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .explain-item { padding: 22px; border-right: 1px solid var(--line); }
+    .explain-item:first-child { padding-left: 0; }
+    .explain-item:last-child { border-right: 0; }
+    .explain-item strong { display: block; margin: 8px 0 6px; font-size: 0.94rem; font-weight: 600; }
+    .explain-item p:last-child { margin: 0; color: var(--dim); font-size: 0.78rem; }
+    .booking { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr); gap: 40px; align-items: end; margin-top: 64px; padding: 46px 0; border-top: 1px solid var(--line); }
+    .booking h2 { max-width: 680px; }
+    .booking-copy { margin: 16px 0 0; color: var(--muted); }
+    .booking-action { text-align: right; }
+    .cta { display: inline-flex; align-items: center; justify-content: center; min-height: 54px; padding: 13px 22px; border: 1px solid var(--amber); background: var(--amber); color: var(--black); font-weight: 750; text-decoration: none; transition: background-color 150ms ease, color 150ms ease; }
+    .cta:hover { background: var(--black); color: var(--amber); }
+    .email { margin: 15px 0 0; color: var(--muted); font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 0.76rem; overflow-wrap: anywhere; }
+    footer { padding: 22px 0 34px; border-top: 1px solid var(--line); color: var(--dim); font-size: 0.76rem; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    .refresh { animation: refresh 180ms ease-out; }
+    @keyframes refresh { from { opacity: 0.45; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    @media (min-width: 560px) { .controls { grid-template-columns: repeat(2, minmax(0, 1fr)); } .controls .action-primary:only-child { grid-column: 1 / -1; } .control-hint { grid-column: 1 / -1; } }
+    @media (max-width: 1080px) { .workspace { grid-template-columns: minmax(230px, 0.7fr) minmax(0, 1.3fr); } .crm-panel { grid-column: 1 / -1; border-top: 1px solid var(--line); } .workspace-panel:nth-child(2) { border-right: 0; } .crm-panel .crm-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; } .activity-heading { margin-top: 0; padding-top: 0; border-top: 0; } }
+    @media (max-width: 760px) { .shell { width: min(calc(100% - 28px), 1320px); } .offline { display: none; } .hero { grid-template-columns: 1fr; gap: 28px; padding: 42px 0 34px; } .rule-box { max-width: 460px; } .business-strip { grid-template-columns: 1fr 1fr; } .business-item:nth-child(2) { border-right: 0; } .business-item:last-child { grid-column: 1 / -1; border-top: 1px solid var(--line); padding-left: 0; } .section-head { align-items: start; flex-direction: column; gap: 10px; } .section-note { text-align: left; } .lead-tab { grid-template-columns: 1fr; gap: 7px; padding: 14px; } .workspace { grid-template-columns: 1fr; } .workspace-panel { border-right: 0; border-bottom: 1px solid var(--line); } .workspace-panel:last-child { border-bottom: 0; } .timeline { grid-template-columns: repeat(5, minmax(120px, 1fr)); overflow-x: auto; padding-bottom: 8px; } .time-step { grid-template-columns: 1fr; grid-template-rows: auto 20px auto; gap: 5px; min-height: 130px; padding: 14px 10px; } .time-node { justify-content: flex-start; padding: 5px 0 0 4px; } .time-node::after { top: 10px; right: -25px; bottom: auto; left: 14px; width: auto; height: 1px; } .time-copy strong { font-size: 0.8rem; } .crm-panel { grid-column: auto; border-top: 0; } .crm-panel .crm-layout { grid-template-columns: 1fr; gap: 0; } .activity-heading { margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--line); } .explain-strip { grid-template-columns: 1fr; } .explain-item { padding: 18px 0; border-right: 0; border-bottom: 1px solid var(--line); } .explain-item:last-child { border-bottom: 0; } .booking { grid-template-columns: 1fr; gap: 26px; margin-top: 42px; padding: 36px 0; } .booking-action { text-align: left; } }
+    @media (max-width: 420px) { .brand { font-size: 0.7rem; } .topbar { min-height: 68px; } .reset-button { padding: 7px 10px; } .business-strip { grid-template-columns: 1fr; } .business-item { padding: 14px 0; border-right: 0; border-bottom: 1px solid var(--line); } .business-item:last-child { grid-column: auto; border-top: 0; border-bottom: 0; } .lead-switcher { grid-template-columns: 1fr; } .lead-tab { border-right: 0; border-bottom: 1px solid var(--line); } .lead-tab:last-child { border-bottom: 0; } .workspace-panel { padding: 18px; } .message-body { min-height: 220px; } .controls { grid-template-columns: 1fr; } .cta { width: 100%; } }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar"><div class="brand"><span class="brand-mark" aria-hidden="true"></span>FollowUp Machine</div><div class="top-actions"><span class="offline mono">Offline demo</span><button class="reset-button" id="resetDemo" type="button">Reset demo</button></div></header>
+    <main>
+      <section class="hero" aria-labelledby="pageTitle"><div><p class="eyebrow">The 30-day machine · playable demo</p><h1 id="pageTitle">See every touch.<br><span>Stop on a reply.</span></h1><p class="hero-copy">Step through a fake month for Maple &amp; Pine Painting, Toronto. Send the next message, make Alex reply, or watch a no-reply lead close out.</p></div><div class="rule-box"><p class="eyebrow">The one rule</p><strong>A reply stops the sales sequence. Immediately.</strong><p>No queued nudge goes out after that. A review ask only becomes available after the job is booked and marked done.</p></div></section>
+      <section class="business-strip" aria-label="Demo setup"><div class="business-item"><p class="label">Fake business</p><strong>Maple &amp; Pine Painting, Toronto</strong></div><div class="business-item"><p class="label">Fake leads</p><strong>2 people · .test inboxes</strong></div><div class="business-item"><p class="label">Real messages sent</p><strong>0 · everything is simulated</strong></div></section>
+      <section class="demo-section" aria-labelledby="demoTitle"><div class="section-head"><div><p class="eyebrow">Choose a lead, then run the timeline</p><h2 id="demoTitle">Play the follow-up.</h2></div><p class="section-note">Click any step to inspect its wording. Use the amber button to move time forward.</p></div>
+        <div class="lead-switcher" aria-label="Choose a fake lead"><button class="lead-tab" type="button" data-lead="alex" aria-pressed="true"><span><span class="lead-name">Alex Chen</span><span class="lead-detail">alex@maple.test · interior painting quote</span></span><span class="chip" id="alexTabStatus">New</span></button><button class="lead-tab" type="button" data-lead="sam" aria-pressed="false"><span><span class="lead-name">Sam Patel</span><span class="lead-detail">sam@maple.test · exterior painting quote</span></span><span class="chip" id="samTabStatus">Never replies</span></button></div>
+        <div class="workspace">
+          <section class="workspace-panel timeline-panel" aria-labelledby="timelineHeading"><div class="panel-heading"><h3 id="timelineHeading">Timeline</h3><span class="panel-number mono">01 / 03</span></div><div class="timeline" id="timeline">
+            <button class="time-step" type="button" data-step="0" aria-current="step"><span class="time-marker">Minute 0</span><span class="time-node" aria-hidden="true"></span><span class="time-copy"><strong>Instant reply</strong><span class="step-state">Up next</span></span></button>
+            <button class="time-step" type="button" data-step="1"><span class="time-marker">Day 2</span><span class="time-node" aria-hidden="true"></span><span class="time-copy"><strong>Quote nudge</strong><span class="step-state">Scheduled</span></span></button>
+            <button class="time-step" type="button" data-step="2"><span class="time-marker">Day 7</span><span class="time-node" aria-hidden="true"></span><span class="time-copy"><strong>Check-in</strong><span class="step-state">Scheduled</span></span></button>
+            <button class="time-step" type="button" data-step="3"><span class="time-marker">Day 14</span><span class="time-node" aria-hidden="true"></span><span class="time-copy"><strong>Last touch</strong><span class="step-state">Scheduled</span></span></button>
+            <button class="time-step" type="button" data-step="4"><span class="time-marker">Job done</span><span class="time-node" aria-hidden="true"></span><span class="time-copy"><strong>Review ask</strong><span class="step-state">After the job</span></span></button>
+          </div></section>
+          <section class="workspace-panel message-panel" aria-labelledby="messageTitle"><div class="message-top"><p class="eyebrow" id="messageTime">Minute 0 · instant reply</p><span class="message-state" id="messageState">Ready · not sent</span></div><h3 class="message-title" id="messageTitle">The first reply</h3><div class="message-meta"><div><span>To:</span> <strong id="messageTo">alex@maple.test</strong></div><div><span>From:</span> Maple &amp; Pine Painting</div><div><span>Mode:</span> Simulation only</div></div><div id="messageRefresh"><p class="message-body" id="messageBody"></p><div class="sequence-notice" id="sequenceNotice" hidden></div></div><div class="controls"><button class="action-button action-primary" id="nextAction" type="button">Send instant reply</button><button class="action-button action-secondary" id="replyAction" type="button">Alex replies now</button><button class="action-button action-crm" id="crmAction" type="button" hidden>Mark quote sent</button></div><p class="control-hint" id="controlHint">Run Minute 0, or make Alex reply before it.</p></section>
+          <aside class="workspace-panel crm-panel" aria-labelledby="crmHeading"><div class="panel-heading"><h3 id="crmHeading">Fake CRM</h3><span class="panel-number mono">03 / 03</span></div><div class="crm-status" id="crmStatus">New</div><div class="crm-layout"><div><dl class="crm-list"><div class="crm-row"><dt>Lead</dt><dd id="crmName">Alex Chen</dd></div><div class="crm-row"><dt>Email</dt><dd id="crmEmail">alex@maple.test</dd></div><div class="crm-row"><dt>Request</dt><dd id="crmRequest">Interior painting quote</dd></div><div class="crm-row"><dt>Sequence</dt><dd id="crmSequence">Active · Minute 0 ready</dd></div><div class="crm-row"><dt>Manual flag</dt><dd id="crmManual">No</dd></div></dl><div class="manual-flag" id="manualFlag" hidden>Manual follow-up needed. No more automatic messages.</div></div><div><h4 class="activity-heading">Activity</h4><ol class="activity-list" id="activityList"></ol></div></div></aside>
+        </div>
+        <div class="explain-strip"><div class="explain-item"><p class="label">If Alex replies</p><strong>The sales sequence stops.</strong><p>Every remaining sales step changes to “Not sent.” Use the manual CRM actions to move the job forward.</p></div><div class="explain-item"><p class="label">If Sam never replies</p><strong>Day 14 closes the loop.</strong><p>The last touch goes out in the demo, the sequence closes, and the CRM flags manual follow-up.</p></div><div class="explain-item"><p class="label">After a real job</p><strong>The review ask is separate.</strong><p>It stays locked until Alex is booked and the job is marked done. It never restarts the sales sequence.</p></div></div>
+      </section>
+      <section class="booking" aria-labelledby="bookingTitle"><div><p class="eyebrow">Maple &amp; Pine is fake. Your follow-up does not have to be.</p><h2 id="bookingTitle">Talk through your own follow-up.</h2><p class="booking-copy">Bring your current process. We’ll look at what to fix first and what not to automate yet.</p></div><div class="booking-action"><a class="cta" href="https://calendly.com/carson-roell/one-on-one">Book a free 20-min call</a><p class="email">hello@freedomengineers.tech</p></div></section>
+    </main>
+    <footer>Demo only — fake leads, no messages sent, no real customer data.</footer>
+  </div>
+  <div class="sr-only" id="liveStatus" role="status" aria-live="polite"></div>
+  <script>
+    (() => {
+      "use strict";
+      const steps = [
+        { time: "Minute 0", title: "Instant reply", heading: "The first reply", action: "Send instant reply", message: lead => `Hi ${lead.firstName} — thanks for asking Maple & Pine Painting about ${lead.articleService}. I got your note. What rooms or surfaces are you thinking about, and when would you like the work done?\n\n— Carson` },
+        { time: "Day 2", title: "Quote nudge", heading: "A simple quote nudge", action: "Send Day 2 quote nudge", message: lead => `Hi ${lead.firstName} — just checking in on your ${lead.service}. If you still want a price, send me the room sizes or a few photos and I’ll help with the next step.\n\n— Carson` },
+        { time: "Day 7", title: "Check-in", heading: "A plain check-in", action: "Send Day 7 check-in", message: lead => `Hi ${lead.firstName} — is the painting project still on your list? If timing has changed, no problem. Tell me what month works and we can go from there.\n\n— Carson` },
+        { time: "Day 14", title: "Last touch", heading: "Close the loop", action: "Send Day 14 last touch", message: lead => `Hi ${lead.firstName} — I’ll close the loop here so I don’t keep filling your inbox. If you still need painting help later, reply to this message and we’ll pick it up.\n\n— Carson` },
+        { time: "Job done", title: "Review ask", heading: "Ask after the work", action: "Send review ask", message: lead => `Hi ${lead.firstName} — thanks for having Maple & Pine Painting in. If everything looks good, would you be open to leaving a short review? A few lines about the work and how it went would help.\n\nThank you\n— Carson` }
+      ];
+      function makeLead(id, name, email, service, articleService, neverReplies = false) { return { id, name, firstName: name.split(" ")[0], email, service, articleService, neverReplies, status: "New", selectedStep: 0, lastSalesStep: -1, replied: false, sequenceStopped: false, closed: false, manual: false, hasQuote: false, followedUp: false, booked: false, jobDone: false, reviewSent: false, activity: [{ time: "Start", title: "Fake lead added to the CRM", detail: "Status: New. No message has been sent." }] }; }
+      function freshState() { return { activeId: "alex", leads: { alex: makeLead("alex", "Alex Chen", "alex@maple.test", "interior painting quote", "an interior painting quote"), sam: makeLead("sam", "Sam Patel", "sam@maple.test", "exterior painting quote", "an exterior painting quote", true) } }; }
+      let state = freshState();
+      const byId = id => document.getElementById(id);
+      const activeLead = () => state.leads[state.activeId];
+      const setText = (id, text) => { byId(id).textContent = text; };
+      function announce(text) { setText("liveStatus", text); }
+      function addActivity(lead, time, title, detail) { lead.activity.unshift({ time, title, detail }); }
+      function salesStepState(lead, index) { if (index <= lead.lastSalesStep) return "done"; if (lead.replied || lead.closed) return "skipped"; if (index === lead.lastSalesStep + 1) return "next"; return "scheduled"; }
+      function timelineState(lead, index) { if (index < 4) return salesStepState(lead, index); if (lead.reviewSent) return "done"; if (lead.jobDone) return "next"; return "scheduled"; }
+      function timelineLabel(lead, index) { const stepState = timelineState(lead, index); if (stepState === "done") return "Sent in demo"; if (stepState === "skipped") return "Not sent"; if (index === 4) { if (lead.jobDone) return "Ready to send"; if (lead.booked) return "Waiting for job done"; return "After the job"; } if (stepState === "next") return "Up next"; return "Scheduled"; }
+      function messageState(lead, index) { const stepState = timelineState(lead, index); if (stepState === "done") return "Simulated · sent"; if (stepState === "skipped") return "Skipped · not sent"; if (stepState === "next") return "Ready · not sent"; return "Scheduled · not sent"; }
+      function sequenceText(lead) { if (lead.reviewSent) return "Complete · review requested"; if (lead.replied) return "Stopped · Alex replied"; if (lead.closed) return "Closed · no reply by Day 14"; if (lead.booked) return "Stopped · job booked"; const next = lead.lastSalesStep + 1; return `Active · ${steps[next].time} ready`; }
+      function nextCrmAction(lead) { if (!lead.replied || lead.reviewSent || lead.jobDone) return null; if (!lead.hasQuote) return "Mark quote sent"; if (!lead.followedUp) return "Log manual follow-up"; if (!lead.booked) return "Mark booked"; return "Mark job done"; }
+      function controlHint(lead) { if (lead.reviewSent) return "This run is complete. Reset the demo to try another reply point."; if (lead.jobDone) return "The job is done. This review ask is separate from the stopped sales sequence."; if (lead.replied) return "Use the CRM action to move the job forward. No scheduled sales message will restart."; if (lead.closed) return "No reply by Day 14. The sequence is closed and manual follow-up is flagged."; if (lead.neverReplies) return "Sam never replies in this demo. Keep stepping through to Day 14."; return `Next: ${steps[lead.lastSalesStep + 1].time}. You can make Alex reply before it.`; }
+      function renderTimeline(lead) { document.querySelectorAll("[data-step]").forEach(button => { const index = Number(button.dataset.step); const stepState = timelineState(lead, index); button.classList.toggle("is-done", stepState === "done"); button.classList.toggle("is-skipped", stepState === "skipped"); button.classList.toggle("is-next", stepState === "next"); if (lead.selectedStep === index) { button.setAttribute("aria-current", "step"); } else { button.removeAttribute("aria-current"); } button.querySelector(".step-state").textContent = timelineLabel(lead, index); }); }
+      function renderMessage(lead) { const index = lead.selectedStep; const step = steps[index]; const stepState = timelineState(lead, index); setText("messageTime", `${step.time} · ${step.title.toLowerCase()}`); setText("messageState", messageState(lead, index)); setText("messageTitle", step.heading); setText("messageTo", lead.email); setText("messageBody", step.message(lead)); byId("messageBody").classList.toggle("is-skipped", stepState === "skipped"); const notice = byId("sequenceNotice"); if (stepState === "skipped") { notice.textContent = `${lead.firstName} replied before this step. This message was not sent, and every later sales step is off too.`; notice.hidden = false; } else if (lead.closed && !lead.replied) { notice.textContent = "Day 14 is complete. No more automatic messages. Manual follow-up is flagged in the CRM."; notice.hidden = false; } else if (lead.replied && index < 4) { notice.textContent = "The sales sequence is stopped. Remaining sales messages will not send."; notice.hidden = false; } else if (index === 4 && lead.jobDone) { notice.textContent = lead.reviewSent ? "Review ask simulated. The sales sequence stayed stopped." : "Unlocked only because the job was booked and marked done."; notice.hidden = false; } else { notice.hidden = true; } const refresh = byId("messageRefresh"); refresh.classList.remove("refresh"); void refresh.offsetWidth; refresh.classList.add("refresh"); }
+      function renderControls(lead) { const next = byId("nextAction"); const reply = byId("replyAction"); const crm = byId("crmAction"); const crmAction = nextCrmAction(lead); reply.hidden = lead.neverReplies || lead.replied || lead.closed || lead.reviewSent; reply.textContent = `${lead.firstName} replies now`; crm.hidden = !crmAction; if (crmAction) crm.textContent = crmAction; if (lead.reviewSent) { next.textContent = "Review requested"; next.disabled = true; } else if (lead.jobDone) { next.textContent = "Send review ask"; next.disabled = false; } else if (lead.replied) { next.textContent = "Sales sequence stopped"; next.disabled = true; } else if (lead.closed) { next.textContent = "Closed · manual follow-up"; next.disabled = true; } else { next.textContent = steps[lead.lastSalesStep + 1].action; next.disabled = false; } setText("controlHint", controlHint(lead)); }
+      function renderCrm(lead) { setText("crmStatus", lead.status); setText("crmName", lead.name); setText("crmEmail", lead.email); setText("crmRequest", lead.service.replace(/^./, letter => letter.toUpperCase())); setText("crmSequence", sequenceText(lead)); setText("crmManual", lead.manual ? "Yes" : "No"); byId("manualFlag").hidden = !lead.manual; const list = byId("activityList"); list.replaceChildren(); lead.activity.forEach(entry => { const item = document.createElement("li"); item.className = "activity-item"; const time = document.createElement("span"); time.className = "activity-time"; time.textContent = entry.time; const title = document.createElement("strong"); title.textContent = entry.title; const detail = document.createElement("p"); detail.textContent = entry.detail; item.append(time, title, detail); list.appendChild(item); }); }
+      function renderLeadTabs() { document.querySelectorAll("[data-lead]").forEach(button => { const selected = button.dataset.lead === state.activeId; button.setAttribute("aria-pressed", String(selected)); }); setText("alexTabStatus", state.leads.alex.status); setText("samTabStatus", state.leads.sam.neverReplies && state.leads.sam.status === "New" ? "Never replies" : state.leads.sam.status); }
+      function render() { const lead = activeLead(); renderLeadTabs(); renderTimeline(lead); renderMessage(lead); renderControls(lead); renderCrm(lead); }
+      function runNext() { const lead = activeLead(); if (lead.jobDone && !lead.reviewSent) { lead.reviewSent = true; lead.selectedStep = 4; lead.status = "Review requested"; addActivity(lead, "Job done", "Review ask simulated", "Status: Review requested. The sales sequence stayed stopped."); announce("Review ask simulated. Alex's status is Review requested."); render(); return; } if (lead.replied || lead.closed || lead.reviewSent) return; const index = lead.lastSalesStep + 1; if (index < 0 || index > 3) return; lead.lastSalesStep = index; lead.selectedStep = index; if (index === 0) { addActivity(lead, "Minute 0", "Instant reply simulated", "No real message sent. Status remains New until the lead replies."); } if (index === 1) { lead.hasQuote = true; lead.status = "Quote sent"; addActivity(lead, "Day 2", "Quote nudge simulated", "Status: Quote sent. No real message sent."); } if (index === 2) { lead.followedUp = true; lead.status = "Followed up"; addActivity(lead, "Day 7", "Check-in simulated", "Status: Followed up. No real message sent."); } if (index === 3) { lead.closed = true; lead.sequenceStopped = true; lead.manual = true; lead.status = "Manual follow-up"; addActivity(lead, "Day 14", "Last touch simulated · sequence closed", "No reply. Manual follow-up flagged; no more automatic messages."); } announce(`${steps[index].time} simulated for ${lead.name}. CRM status: ${lead.status}.`); render(); }
+      function replyNow() { const lead = activeLead(); if (lead.neverReplies || lead.replied || lead.closed || lead.reviewSent) return; lead.replied = true; lead.sequenceStopped = true; lead.status = "Replied"; lead.selectedStep = Math.min(lead.lastSalesStep + 1, 3); addActivity(lead, steps[Math.max(lead.lastSalesStep, 0)].time, `${lead.firstName} replied`, "Sales sequence stopped immediately. Every remaining sales step is now Not sent."); announce(`${lead.firstName} replied. The sales sequence stopped immediately.`); render(); }
+      function runCrmAction() { const lead = activeLead(); const action = nextCrmAction(lead); if (!action) return; if (action === "Mark quote sent") { lead.hasQuote = true; lead.status = "Quote sent"; addActivity(lead, "Manual CRM", "Quote marked as sent", "Status: Quote sent. No automatic message was sent."); } else if (action === "Log manual follow-up") { lead.followedUp = true; lead.status = "Followed up"; addActivity(lead, "Manual CRM", "Manual follow-up logged", "Status: Followed up. The sales sequence remains stopped."); } else if (action === "Mark booked") { lead.booked = true; lead.status = "Booked"; addActivity(lead, "Manual CRM", "Job marked as booked", "Status: Booked. Mark the job done to unlock the review ask."); } else if (action === "Mark job done") { lead.jobDone = true; lead.selectedStep = 4; addActivity(lead, "Job done", "Job marked as done", "The separate review ask is now ready."); } announce(`${action} for ${lead.name}. CRM status: ${lead.status}.`); render(); }
+      document.querySelectorAll("[data-lead]").forEach(button => { button.addEventListener("click", () => { state.activeId = button.dataset.lead; render(); announce(`${activeLead().name} selected. Status: ${activeLead().status}.`); }); });
+      document.querySelectorAll("[data-step]").forEach(button => { button.addEventListener("click", () => { activeLead().selectedStep = Number(button.dataset.step); render(); }); });
+      byId("nextAction").addEventListener("click", runNext);
+      byId("replyAction").addEventListener("click", replyNow);
+      byId("crmAction").addEventListener("click", runCrmAction);
+      byId("resetDemo").addEventListener("click", () => { state = freshState(); render(); announce("Demo reset. Both fake leads are back at New."); });
+      render();
+    })();
+  </script>
+</body>
+</html>
